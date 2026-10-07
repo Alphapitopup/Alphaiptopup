@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlphaPiTopUp</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f5effa;
+      color: #222;
+    }
+
+    header {
+      background: #6f3a91;
+      color: white;
+      padding: 25px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      font-size: 15px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 25px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 22px;
+      border-radius: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      color: #6f3a91;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 7px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #6f3a91;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #582d74;
+    }
+
+    .info {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f1e5f8;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #777;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>AlphaPiTopUp</h1>
+    <p>Airtime & Data with Pi</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+
+      <h2>Buy Airtime & Data</h2>
+
+      <label>Phone Number</label>
+      <input type="tel" placeholder="Enter phone number">
+
+      <label>Network</label>
+      <select>
+        <option>Select Network</option>
+        <option>Libyana</option>
+        <option>Almadar</option>
+        <option>Other</option>
+      </select>
+
+      <label>Service</label>
+      <select>
+        <option>Choose Service</option>
+        <option>Airtime</option>
+        <option>Data Bundle</option>
+      </select>
+
+      <label>Amount</label>
+      <input type="number" placeholder="Enter amount">
+
+      <button onclick="startPayment()">Continue with Pi</button>
+
+      <div class="info">
+        <strong>AlphaPiTopUp</strong><br>
+        Buy mobile airtime and data bundles using Pi.
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    © 2026 AlphaPiTopUp
+  </footer>
+
+  <script>
+    function startPayment() {
+      alert("Pi payment integration will be connected here.");
+    }
+  </script>
+
+</body>
+</html>

@@ -1,158 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AlphaPiTopUp</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
-
-    body {
-      background: #f5effa;
-      color: #222;
-    }
-
-    header {
-      background: #6f3a91;
-      color: white;
-      padding: 25px 20px;
-      text-align: center;
-    }
-
-    header h1 {
-      font-size: 30px;
-      margin-bottom: 8px;
-    }
-
-    header p {
-      font-size: 15px;
-    }
-
-    .container {
-      max-width: 500px;
-      margin: 25px auto;
-      padding: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 22px;
-      border-radius: 18px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    }
-
-    h2 {
-      color: #6f3a91;
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 7px;
-      font-weight: bold;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 22px;
-      padding: 15px;
-      border: none;
-      border-radius: 10px;
-      background: #6f3a91;
-      color: white;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #582d74;
-    }
-
-    .info {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f1e5f8;
-      border-radius: 10px;
-      font-size: 14px;
-    }
-
-    footer {
-      text-align: center;
-      padding: 25px;
-      color: #777;
-      font-size: 13px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlphaPiTopUp</title>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<style>
+  :root { --purple:#6f3b91; --ink:#24182e; --bg:#f4eef8; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:var(--purple); color:#fff; text-align:center; padding:32px 16px 44px; }
+  header h1 { margin:0 0 6px; font-size:2rem; }
+  header p { margin:0; opacity:.9; }
+  main { max-width:480px; margin:-24px auto 32px; padding:0 16px; }
+  form { background:#fff; border-radius:20px; padding:24px; box-shadow:0 6px 20px rgba(60,20,90,.12); }
+  h2 { margin:0 0 8px; color:var(--purple); }
+  label { display:block; font-weight:600; margin:16px 0 6px; }
+  input, select { width:100%; padding:14px; border:1px solid #cdbfd8; border-radius:12px; font-size:1rem; background:#fff; color:var(--ink); }
+  input:focus, select:focus, button:focus-visible { outline:3px solid #b98fd6; outline-offset:1px; }
+  button { width:100%; margin-top:24px; padding:16px; border:0; border-radius:14px; background:var(--purple); color:#fff; font-size:1.1rem; font-weight:700; }
+  button:disabled { opacity:.6; }
+  #status { display:none; margin-top:16px; padding:12px 14px; border-radius:12px; font-size:.95rem; }
+  #status.ok { display:block; background:#e5f6ea; color:#14532d; }
+  #status.err { display:block; background:#fdeaea; color:#7f1d1d; }
+  #status.info { display:block; background:#ece4f3; color:#3b1d52; }
+  footer { text-align:center; padding:0 16px 32px; font-size:.85rem; color:#6b5a78; }
+</style>
 </head>
-
 <body>
+<header>
+  <h1>AlphaPiTopUp</h1>
+  <p>Airtime &amp; Data with Pi</p>
+</header>
 
-  <header>
-    <h1>AlphaPiTopUp</h1>
-    <p>Airtime & Data with Pi</p>
-  </header>
+<main>
+  <form id="topup">
+    <h2>Buy Airtime &amp; Data</h2>
 
-  <div class="container">
-    <div class="card">
+    <label for="phone">Phone Number</label>
+    <input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="08012345678" required>
 
-      <h2>Buy Airtime & Data</h2>
+    <label for="network">Network</label>
+    <select id="network" name="network" required>
+      <option value="">Select Network</option>
+      <option>MTN</option>
+      <option>Airtel</option>
+      <option>Glo</option>
+      <option>9mobile</option>
+    </select>
 
-      <label>Phone Number</label>
-      <input type="tel" placeholder="Enter phone number">
+    <label for="service">Service</label>
+    <select id="service" name="service" required>
+      <option value="">Choose Service</option>
+      <option>Airtime</option>
+      <option>Data Bundle</option>
+    </select>
 
-      <label>Network</label>
-      <select>
-        <option>Select Network</option>
-        <option>Libyana</option>
-        <option>Almadar</option>
-        <option>Other</option>
-      </select>
+    <label for="amount">Amount (NGN)</label>
+    <input id="amount" name="amount" type="number" inputmode="numeric" min="50" placeholder="Enter amount" required>
 
-      <label>Service</label>
-      <select>
-        <option>Choose Service</option>
-        <option>Airtime</option>
-        <option>Data Bundle</option>
-      </select>
+    <button id="pay" type="submit">Continue with Pi</button>
+    <div id="status" role="status"></div>
+  </form>
+</main>
 
-      <label>Amount</label>
-      <input type="number" placeholder="Enter amount">
+<footer>Buy mobile airtime and data bundles using Pi. &copy; 2026 AlphaPiTopUp</footer>
 
-      <button onclick="startPayment()">Continue with Pi</button>
+<script>
+  var API = "https://alphapitopup-api.vercel.app";
+  var TEST_PI_AMOUNT = 0.01; // fixed test price in Pi until real pricing is decided
 
-      <div class="info">
-        <strong>AlphaPiTopUp</strong><br>
-        Buy mobile airtime and data bundles using Pi.
-      </div>
+  Pi.init({ version: "2.0", sandbox: true });
 
-    </div>
-  </div>
+  var form = document.getElementById("topup");
+  var btn = document.getElementById("pay");
+  var box = document.getElementById("status");
 
-  <footer>
-    © 2026 AlphaPiTopUp
-  </footer>
+  function show(type, text) { box.className = type; box.textContent = text; }
 
-  <script>
-    function startPayment() {
-      alert("Pi payment integration will be connected here.");
+  async function post(path, body) {
+    var r = await fetch(API + path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error("Server error " + r.status);
+    return r.json();
+  }
+
+  function onIncompletePaymentFound(payment) {
+    var txid = payment.transaction && payment.transaction.txid;
+    if (txid) post("/api/complete", { paymentId: payment.identifier, txid: txid }).catch(function () {});
+  }
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var phone = form.phone.value.trim();
+    var network = form.network.value;
+    var service = form.service.value;
+    var amount = form.amount.value;
+
+    if (!/^0\d{10}$/.test(phone)) {
+      show("err", "Enter an 11-digit Nigerian phone number, like 08012345678.");
+      return;
     }
-  </script>
 
+    btn.disabled = true;
+    show("info", "Opening Pi...");
+
+    try {
+      await Pi.authenticate(["username", "payments"], onIncompletePaymentFound);
+      show("info", "Confirm the payment in Pi.");
+
+      Pi.createPayment(
+        {
+          amount: TEST_PI_AMOUNT,
+          memo: service + " " + amount + " NGN " + network,
+          metadata: { phone: phone, network: network, service: service, amount: amount }
+        },
+        {
+          onReadyForServerApproval: function (paymentId) {
+            post("/api/approve", { paymentId: paymentId }).catch(function () {
+              show("err", "Could not reach the server. Try again.");
+              btn.disabled = false;
+            });
+          },
+          onReadyForServerCompletion: async function (paymentId, txid) {
+            try {
+              await post("/api/complete", { paymentId: paymentId, txid: txid });
+              show("ok", "Payment received. Airtime delivery is not connected yet.");
+            } catch (err) {
+              show("err", "Payment was sent but could not be confirmed. Keep this screen and contact support.");
+            }
+            btn.disabled = false;
+          },
+          onCancel: function () { show("err", "Payment cancelled."); btn.disabled = false; },
+          onError: function (error) { show("err", "Payment failed: " + error.message); btn.disabled = false; }
+        }
+      );
+    } catch (err) {
+      show("err", "Open this page in Pi Browser, then try again.");
+      btn.disabled = false;
+    }
+  });
+</script>
 </body>
 </html>

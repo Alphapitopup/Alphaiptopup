@@ -84,8 +84,9 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
-    if (!r.ok) throw new Error("Server error " + r.status);
-    return r.json();
+    var data = await r.json().catch(function () { return {}; });
+    if (!r.ok) throw new Error(data.error || ("Server error " + r.status));
+    return data;
   }
 
   function onIncompletePaymentFound(payment) {
@@ -102,6 +103,10 @@
 
     if (!/^0\d{10}$/.test(phone)) {
       show("err", "Enter an 11-digit Nigerian phone number, like 08012345678.");
+      return;
+    }
+    if (service !== "Airtime") {
+      show("err", "Data bundles are coming soon. Please choose Airtime for now.");
       return;
     }
 
@@ -128,9 +133,21 @@
           onReadyForServerCompletion: async function (paymentId, txid) {
             try {
               await post("/api/complete", { paymentId: paymentId, txid: txid });
-              show("ok", "Payment received. Airtime delivery is not connected yet.");
             } catch (err) {
               show("err", "Payment was sent but could not be confirmed. Keep this screen and contact support.");
+              btn.disabled = false;
+              return;
+            }
+            show("info", "Payment received. Sending your airtime...");
+            try {
+              var d = await post("/api/deliver", { paymentId: paymentId });
+              if (d.code === "000") {
+                show("ok", "Done! " + amount + " NGN " + network + " airtime sent to " + phone + ".");
+              } else {
+                show("err", "Payment received but airtime failed: " + (d.message || "unknown error") + ". Keep this screen and contact support.");
+              }
+            } catch (err) {
+              show("err", "Payment received but airtime failed: " + err.message + ". Keep this screen and contact support.");
             }
             btn.disabled = false;
           },

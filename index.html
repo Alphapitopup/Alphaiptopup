@@ -17,9 +17,11 @@
   h2 { margin:0 0 8px; color:var(--purple); }
   label { display:block; font-weight:600; margin:16px 0 6px; }
   input, select { width:100%; padding:14px; border:1px solid #cdbfd8; border-radius:12px; font-size:1rem; background:#fff; color:var(--ink); }
+  input[readonly] { background:#f1eaf6; }
   input:focus, select:focus, button:focus-visible { outline:3px solid #b98fd6; outline-offset:1px; }
   button { width:100%; margin-top:24px; padding:16px; border:0; border-radius:14px; background:var(--purple); color:#fff; font-size:1.1rem; font-weight:700; }
   button:disabled { opacity:.6; }
+  #planBox { display:none; }
   #status { display:none; margin-top:16px; padding:12px 14px; border-radius:12px; font-size:.95rem; }
   #status.ok { display:block; background:#e5f6ea; color:#14532d; }
   #status.err { display:block; background:#fdeaea; color:#7f1d1d; }
@@ -56,8 +58,15 @@
       <option>Data Bundle</option>
     </select>
 
+    <div id="planBox">
+      <label for="plan">Data Plan</label>
+      <select id="plan" name="plan">
+        <option value="">Select Plan</option>
+      </select>
+    </div>
+
     <label for="amount">Amount (NGN)</label>
-    <input id="amount" name="amount" type="number" inputmode="numeric" min="50" placeholder="Enter amount" required>
+    <input id="amount" name="amount" type="number" inputmode="numeric" placeholder="Enter amount">
 
     <button id="pay" type="submit">Continue with Pi</button>
     <div id="status" role="status"></div>
@@ -75,8 +84,12 @@
   var form = document.getElementById("topup");
   var btn = document.getElementById("pay");
   var box = document.getElementById("status");
+  var planBox = document.getElementById("planBox");
+  var planSel = document.getElementById("plan");
+  var plans = [];
 
   function show(type, text) { box.className = type; box.textContent = text; }
+  function isData() { return form.service.value === "Data Bundle"; }
 
   async function post(path, body) {
     var r = await fetch(API + path, {
@@ -89,6 +102,53 @@
     return data;
   }
 
+  async function loadPlans() {
+    plans = [];
+    form.amount.value = "";
+    planSel.innerHTML = '<option value="">Select Plan</option>';
+    if (!isData() || !form.network.value) return;
+    planSel.innerHTML = '<option value="">Loading plans...</option>';
+    try {
+      var r = await fetch(API + "/api/plans?network=" + encodeURIComponent(form.network.value));
+      var d = await r.json();
+      plans = (d.plans || []).slice().sort(function (a, b) { return a.amount - b.amount; });
+      if (!plans.length) {
+        planSel.innerHTML = '<option value="">No plans available</option>';
+        return;
+      }
+      planSel.innerHTML = '<option value="">Select Plan</option>';
+      plans.forEach(function (p) {
+        var o = document.createElement("option");
+        o.value = p.code;
+        o.textContent = p.name;
+        planSel.appendChild(o);
+      });
+    } catch (e) {
+      planSel.innerHTML = '<option value="">Could not load plans</option>';
+    }
+  }
+
+  function refreshMode() {
+    if (isData()) {
+      planBox.style.display = "block";
+      form.amount.readOnly = true;
+      form.amount.placeholder = "Choose a plan";
+      loadPlans();
+    } else {
+      planBox.style.display = "none";
+      form.amount.readOnly = false;
+      form.amount.placeholder = "Enter amount";
+      form.amount.value = "";
+    }
+  }
+
+  form.service.addEventListener("change", refreshMode);
+  form.network.addEventListener("change", function () { if (isData()) loadPlans(); });
+  planSel.addEventListener("change", function () {
+    var p = plans.filter(function (x) { return x.code === planSel.value; })[0];
+    form.amount.value = p ? p.amount : "";
+  });
+
   function onIncompletePaymentFound(payment) {
     var txid = payment.transaction && payment.transaction.txid;
     if (txid) post("/api/complete", { paymentId: payment.identifier, txid: txid }).catch(function () {});
@@ -100,15 +160,33 @@
     var network = form.network.value;
     var service = form.service.value;
     var amount = form.amount.value;
+    var planCode = "";
+    var planName = "";
 
     if (!/^0\d{10}$/.test(phone)) {
       show("err", "Enter an 11-digit Nigerian phone number, like 08012345678.");
       return;
     }
-    if (service !== "Airtime") {
-      show("err", "Data bundles are coming soon. Please choose Airtime for now.");
+    if (service === "Data Bundle") {
+      var p = plans.filter(function (x) { return x.code === planSel.value; })[0];
+      if (!p) {
+        show("err", "Please choose a data plan.");
+        return;
+      }
+      planCode = p.code;
+      planName = p.name;
+      amount = String(p.amount);
+    } else if (service === "Airtime") {
+      if (!(parseInt(amount, 10) >= 50)) {
+        show("err", "Minimum airtime amount is 50 NGN.");
+        return;
+      }
+    } else {
+      show("err", "Please choose a service.");
       return;
     }
+
+    var label = service === "Data Bundle" ? planName : (amount + " NGN " + network + " airtime");
 
     btn.disabled = true;
     show("info", "Opening Pi...");
@@ -117,11 +195,14 @@
       await Pi.authenticate(["username", "payments"], onIncompletePaymentFound);
       show("info", "Confirm the payment in Pi.");
 
+      var metadata = { phone: phone, network: network, service: service, amount: amount };
+      if (planCode) metadata.plan = planCode;
+
       Pi.createPayment(
         {
           amount: TEST_PI_AMOUNT,
-          memo: service + " " + amount + " NGN " + network,
-          metadata: { phone: phone, network: network, service: service, amount: amount }
+          memo: service === "Data Bundle" ? (network + " " + planName) : (service + " " + amount + " NGN " + network),
+          metadata: metadata
         },
         {
           onReadyForServerApproval: function (paymentId) {
@@ -138,16 +219,16 @@
               btn.disabled = false;
               return;
             }
-            show("info", "Payment received. Sending your airtime...");
+            show("info", "Payment received. Sending your order...");
             try {
               var d = await post("/api/deliver", { paymentId: paymentId });
               if (d.code === "000") {
-                show("ok", "Done! " + amount + " NGN " + network + " airtime sent to " + phone + ".");
+                show("ok", "Done! " + label + " sent to " + phone + ".");
               } else {
-                show("err", "Payment received but airtime failed: " + (d.message || "unknown error") + ". Keep this screen and contact support.");
+                show("err", "Payment received but delivery failed: " + (d.message || "unknown error") + ". Keep this screen and contact support.");
               }
             } catch (err) {
-              show("err", "Payment received but airtime failed: " + err.message + ". Keep this screen and contact support.");
+              show("err", "Payment received but delivery failed: " + err.message + ". Keep this screen and contact support.");
             }
             btn.disabled = false;
           },
